@@ -9,6 +9,7 @@ local success, result = pcall(function()
     local ref = gui.Reference("World", "Extra")
     local combobox = gui.Combobox(ref, "rc_circle_type", "Crosshair Recoil (FIX)", "Off", "Line", "Fade", "Stroke", "Stroke Animated")
     local rc_color = gui.ColorPicker(combobox, "rc_circle_clr", "Circle Color", 255, 255, 255, 255)
+    local rc_speed = gui.Slider(ref, "rc_circle_speed", "Circle Speed", 15, -100, 100)
 
     local client_base = ffi.cast("uintptr_t", ffi.C.GetModuleHandleA("client.dll"))
     
@@ -73,12 +74,14 @@ local success, result = pcall(function()
         local type_val = combobox:GetValue()
         if type_val == 0 then return end -- "Off"
 
+        rc_speed:SetInvisible(type_val ~= 4)
+
         local lp = entities.GetLocalPlayer()
         if not lp or not lp:IsAlive() then return end
 
         local w, h = draw.GetScreenSize()
         if not w or w == 0 then return end
-        local cx, cy = math.floor(w / 2) + 0.5, math.floor(h / 2) + 0.5
+        local cx, cy = w / 2, h / 2
         
 
         local inacc = lp:GetWeaponInaccuracy() or 0
@@ -140,10 +143,10 @@ local success, result = pcall(function()
         elseif type_val == 3 or type_val == 4 then
             local rotation_offset = 0
             if type_val == 4 then
-                rotation_offset = (globals.RealTime() * 1.5) % (math.pi * 2)
+                rotation_offset = (globals.RealTime() * rc_speed:GetValue() / 10) % (math.pi * 2)
             end
 
-            local segments = 32 
+            local segments = 32
             local step = (math.pi * 2) / segments
 
             draw.Color(r, g, b, a)
@@ -153,10 +156,11 @@ local success, result = pcall(function()
                     local angle_start = i * step + rotation_offset
                     local angle_end = (i + 1) * step + rotation_offset
 
-                    local x1 = math.floor(cx + math.cos(angle_start) * radius)
-                    local y1 = math.floor(cy + math.sin(angle_start) * radius)
-                    local x2 = math.floor(cx + math.cos(angle_end) * radius)
-                    local y2 = math.floor(cy + math.sin(angle_end) * radius)
+                    local x1 = math.floor(cx + math.cos(angle_start) * radius + 0.5)
+                    local y1 = math.floor(cy + math.sin(angle_start) * radius + 0.5)
+
+                    local x2 = math.floor(cx + math.cos(angle_end) * radius + 0.5)
+                    local y2 = math.floor(cy + math.sin(angle_end) * radius + 0.5)
 
                     draw.Line(x1, y1, x2, y2)
                 end
