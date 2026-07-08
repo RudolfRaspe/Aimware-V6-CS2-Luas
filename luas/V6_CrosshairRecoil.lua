@@ -57,22 +57,32 @@ local success, result = pcall(function()
     http.Get("https://raw.githubusercontent.com/a2x/cs2-dumper/refs/heads/main/output/client_dll.json", function(body)
         if not body or body == "" then return end
         local matchCameraServices = string.match(body, '"m_pCameraServices"%s*:%s*(%d+)')
-        if matchCameraServices then
-            m_pCameraServices = tonumber(matchCameraServices)
-            --print("[Spread Circle] m_pCameraServices parsed from GitHub: 0x" .. string.format("%X", m_pCameraServices))
-        end
-
         local matchFov = string.match(body, '"m_iFOV"%s*:%s*(%d+)')
-        if matchFov then 
+        if matchCameraServices and matchFov then
+            m_pCameraServices = tonumber(matchCameraServices)
             m_iFOV = tonumber(matchFov)
             fov_offset_found = true
+            --print("[Spread Circle] m_pCameraServices parsed from GitHub: 0x" .. string.format("%X", m_pCameraServices))
             --print("[Spread Circle] FOV Offset parsed from GitHub: 0x" .. string.format("%X", m_iFOV))
         end
     end)
 
+    local function FCR(parent, targetName)
+        if not parent or not parent.Children then return nil end
+        
+        for child in parent:Children() do
+            if child:GetName() == targetName then return child end
+            local found = FCR(child, targetName)
+            if found then return found end
+        end
+        return nil
+    end
+
+    FCR(gui.Reference("World"), "Crosshair Recoil"):SetInvisible(true)
+
     callbacks.Register("Draw", function()
         local type_val = combobox:GetValue()
-        if type_val == 0 then return end -- "Off"
+        if type_val == 0 then return end
 
         rc_speed:SetInvisible(type_val ~= 4)
 
@@ -166,6 +176,10 @@ local success, result = pcall(function()
                 end
             end
         end
+    end)
+
+    callbacks.Register("Unload", function()
+        FCR(gui.Reference("World"), "Crosshair Recoil"):SetInvisible(false)
     end)
 end)
 
