@@ -80,8 +80,8 @@ local NameChanger_Combobox_ref = gui.Combobox(Aimware_Misc_Features_ref, "var_Na
 
 local NameChanger_Clantag_Editbox_ref = gui.Editbox(Aimware_Misc_Features_ref, "var_NameChanger_Clantag_Editbox", "Custom Text / Tag")
 
-local Spammer_Speed_Slider_ref = gui.Slider(Aimware_Misc_Features_ref, "var_Spammer_Speed_Slider", "Tag Spammer Delay", 4, 1, 30)
-local Stealer_Speed_Slider_ref = gui.Slider(Aimware_Misc_Features_ref, "var_Stealer_Speed_Slider", "Name Stealer Delay", 5, 1, 50)
+local Spammer_Speed_Slider_ref = gui.Slider(Aimware_Misc_Features_ref, "var_Spammer_Speed_Slider", "Tag Spammer Delay", 100, 1, 1000)
+local Stealer_Speed_Slider_ref = gui.Slider(Aimware_Misc_Features_ref, "var_Stealer_Speed_Slider", "Name Stealer Delay", 100, 1, 1000)
 -------------------\/-------------------
 
 local function GetMagicSymbols(iCount)
@@ -165,7 +165,7 @@ local function TagSpammerHandler()
     local now = common.Time()
     if now < spammer_last_update then spammer_last_update = 0 end
 
-    local current_delay = Spammer_Speed_Slider_ref:GetValue() / 10
+    local current_delay = Spammer_Speed_Slider_ref:GetValue() / 100
     if now - spammer_last_update < current_delay then return end
     spammer_last_update = now
 
@@ -221,7 +221,7 @@ local function NameStealerHandler()
     local now = common.Time()
     if now < stealer_last_update then stealer_last_update = 0 end
 
-    local current_delay = Stealer_Speed_Slider_ref:GetValue() / 10
+    local current_delay = Stealer_Speed_Slider_ref:GetValue() / 100
     if now - stealer_last_update < current_delay then return end
     stealer_last_update = now
 
@@ -229,13 +229,13 @@ local function NameStealerHandler()
     local pLocalPlayer = entities.GetLocalPlayer()
     local local_idx = pLocalPlayer and pLocalPlayer:GetIndex() or -1
 
-    local pawns = entities.FindByClass("C_CSPlayerPawn")
+    local pawns = entities.FindByClass("CCSPlayerController")
     if pawns then
         for _, pawn in pairs(pawns) do
-            if pawn and pawn:IsAlive() then
+            if pawn then
                 local idx = pawn:GetIndex()
                 if idx and idx ~= local_idx then
-                    local name = client.GetPlayerNameByIndex(idx)
+                    local name = pawn:GetFieldString("m_iszPlayerName")
                     if name and name ~= "" and name ~= "nil" and name ~= cOldRealName and not name:find("GOTV") then
                         table.insert(pool, name)
                     end
@@ -245,14 +245,14 @@ local function NameStealerHandler()
     end
 
     if #pool == 0 then return end
-    SetUserNameAndClantag(pool[math.random(1, #pool)] .. "⠀")
+    SetUserNameAndClantag(pool[math.random(1, #pool)] .. "")
 end
 
 local function NearestNameStealerHandler()
     local now = common.Time()
     if now < stealer_last_update then stealer_last_update = 0 end
 
-    local current_delay = Stealer_Speed_Slider_ref:GetValue() / 10
+    local current_delay = Stealer_Speed_Slider_ref:GetValue() / 100
     if now - stealer_last_update < current_delay then return end
     stealer_last_update = now
 
@@ -268,7 +268,7 @@ local function NearestNameStealerHandler()
     local pawns = entities.FindByClass("C_CSPlayerPawn")
     if pawns then
         for _, pawn in pairs(pawns) do
-            if pawn and pawn:IsAlive() then
+            if pawn then
                 local idx = pawn:GetIndex()
                 if idx and idx ~= pLocalPlayer:GetIndex() then
                     local pawnOrigin = pawn:GetAbsOrigin()
