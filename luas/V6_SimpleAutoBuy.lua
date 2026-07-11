@@ -119,7 +119,9 @@ local function on_player_spawn(event)
     if event:GetName() ~= "player_spawn" then return end
 
     local controller_index = event:GetInt("userid") + 1
-    local local_player_idx = get_my_controller_index(entities.GetLocalPlayer())
+    local lp = entities.GetLocalPlayer()
+    if not lp then return end
+    local local_player_idx = get_my_controller_index(lp)
 
     if controller_index ~= local_player_idx then return end
 
